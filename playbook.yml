@@ -1,0 +1,5 @@
+- hosts: servidores
+  become: yes
+  roles:
+    - apache
+    - samba

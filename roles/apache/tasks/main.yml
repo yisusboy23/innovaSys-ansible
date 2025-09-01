@@ -1,0 +1,18 @@
+- name: Instalar Apache
+  apt:
+    name: apache2
+    state: present
+    update_cache: yes
+
+- name: Publicar index.html desde plantilla
+  template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    mode: '0644'
+  notify: Reiniciar Apache
+
+- name: Asegurar apache2 activo y habilitado
+  service:
+    name: apache2
+    state: started
+    enabled: yes

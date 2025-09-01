@@ -1,0 +1,15 @@
+[global]
+   workgroup = WORKGROUP
+   server role = standalone server
+   security = user
+   map to guest = never
+   unix password sync = yes
+
+[Proyectos]
+   path = {{ samba_share_path }}
+   read only = no
+   browseable = yes
+   valid users = @{{ samba_group }}
+   force group = {{ samba_group }}
+   create mask = 0660
+   directory mask = 2770

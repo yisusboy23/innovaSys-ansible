@@ -1,0 +1,51 @@
+- name: Instalar Samba y utilidades
+  apt:
+    name:
+      - samba
+      - samba-common-bin
+    state: present
+    update_cache: yes
+
+- name: Crear grupo
+  group:
+    name: "{{ samba_group }}"
+    state: present
+
+- name: Crear usuario del sistema sin shell
+  user:
+    name: "{{ samba_user }}"
+    group: "{{ samba_group }}"
+    shell: /usr/sbin/nologin
+    create_home: no
+    state: present
+
+- name: Crear directorio compartido
+  file:
+    path: "{{ samba_share_path }}"
+    state: directory
+    owner: root
+    group: "{{ samba_group }}"
+    mode: '2770'
+
+- name: Plantillar /etc/samba/smb.conf
+  template:
+    src: smb.conf.j2
+    dest: /etc/samba/smb.conf
+    mode: '0644'
+  notify: Reiniciar Samba
+
+- name: Comprobar si usuario Samba ya existe
+  command: pdbedit -L
+  register: pdb_users
+  changed_when: false
+
+- name: Crear usuario Samba y establecer contraseña (si no existe)
+  shell: |
+    (echo "{{ samba_pass }}"; echo "{{ samba_pass }}") | smbpasswd -s -a {{ samba_user }}
+  when: pdb_users.stdout.find(samba_user + ":") == -1
+
+- name: Asegurar smbd activo y habilitado
+  service:
+    name: smbd
+    state: started
+    enabled: yes
